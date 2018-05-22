@@ -45,14 +45,15 @@ XL = data_points(data_points_size-1);
 XR = data_points(data_points_size);
 
 dx = XR - XL;
-yN = (f(XL) - f(data_points(data_points_size - 2))) / (XL - data_points(data_points_size - 2));
-
-sN = 0.5 * (3*yN - g(data_points(data_points_size - 2)));
+yN1 = (f(XR) - f(XL)) / dx;
 
 a = f(XL);
-b = sN;
-c = (y1 - sN) / dx;
-d = (g(XR) + sN - 2*yN) / (dx)^2;
+b = g(XL);
+c = (yN1 - g(XL)) / dx;
+
+sN = 0.5 * (3*yN1 - g(XL));
+
+d = (sN + g(XL) - 2*yN1) / (dx)^2;
 
 spN = @(x) a + b*(x - XL) + c*(x - XL)^2 + d*((x - XL)^2)*(x - XR);
 
