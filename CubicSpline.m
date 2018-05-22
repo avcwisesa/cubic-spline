@@ -16,15 +16,48 @@ clf();
 x_runge = linspace(A,B,150);
 y_runge = f(x_runge);
 
-
-%% Set natural spline
-
-now = 1;
-
-%% 2) Divide range to desired subintervals
+%% Divide range to desired subintervals
 data_points = linspace(A,B,n);
 f_data_points = f(data_points);
 data_points_size = length(data_points);
+
+%% Set natural spline
+% first spline
+
+XL = data_points(1);
+XR = data_points(2);
+
+dx = XR - XL;
+y1 = (f(XR) - f(XL)) / dx;
+
+s1 = 0.5 * (3*y1 - g(XR));
+
+a = f(XL);
+b = s1;
+c = (y1 - s1) / dx;
+d = (g(XR) + s1 - 2*y1) / (dx)^2;
+
+sp1 = @(x) a + b*(x - XL) + c*(x - XL)^2 + d*((x - XL)^2)*(x - XR);
+
+% last spline
+
+XL = data_points(data_points_size-1);
+XR = data_points(data_points_size);
+
+dx = XR - XL;
+yN = (f(XL) - f(data_points(data_points_size - 2))) / (XL - data_points(data_points_size - 2));
+
+sN = 0.5 * (3*yN - g(data_points(data_points_size - 2)));
+
+a = f(XL);
+b = sN;
+c = (y1 - sN) / dx;
+d = (g(XR) + sN - 2*yN) / (dx)^2;
+
+spN = @(x) a + b*(x - XL) + c*(x - XL)^2 + d*((x - XL)^2)*(x - XR);
+
+%% Mark interpolated points
+now = 1;
 
 offset = (B-A)/(n+1);
 x_test = [];
@@ -32,14 +65,19 @@ y_f = [];
 y_s = [];
 emax = 0;
 y_approx = [];
-%% 3) Iterasi per subinterval
-%%        - plot error
+%% Iterasi per subinterval
 for i = 1 : data_points_size - 1
   low = data_points(i);
   high = data_points(i+1);
 
   %% calculate spline function
-  s = calculateSpline(low, high, f, g);
+  if i == 1
+    s = sp1;
+  elseif i == data_points_size - 1
+    s = spN;
+  else
+    s = calculateSpline(low, high, f, g);
+  endif;
   
   %% plot points in the subinterval
   while x_runge(now) <= high
