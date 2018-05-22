@@ -16,6 +16,9 @@ clf();
 x_runge = linspace(A,B,150);
 y_runge = f(x_runge);
 
+
+%% Set natural spline
+
 now = 1;
 
 %% 2) Divide range to desired subintervals
@@ -36,16 +39,7 @@ for i = 1 : data_points_size - 1
   high = data_points(i+1);
 
   %% calculate spline function
-  a = f(low);
-  b = g(low);
-  
-  delta_x = high - low;
-  y2 = (f(high) - f(low)) / delta_x;
-  
-  c = (y2 - g(low)) / delta_x;
-  d = (g(high) + g(low) - 2*y2) / (delta_x^2);
-  
-  s = @(x) a + b*(x - low) + c*(x - low)^2 + d*((x - low)^2)*(x - high);
+  s = calculateSpline(low, high, f, g);
   
   %% plot points in the subinterval
   while x_runge(now) <= high
@@ -68,14 +62,15 @@ for i = 1 : data_points_size - 1
   end;
 endfor;
 
-length(x_runge);
-length(y_approx);
-plot(x_runge, y_approx, 'r', 'linewidth', 4);
+
+%% Plot Runge function to graph
+plot(x_runge, y_runge, 'g', 'linewidth', 3);
 hold on;
 
-%% 4) Plot Runge function to graph
-plot(x_runge, y_runge, 'g', 'linewidth', 1);
+%% Plot interpolation
+plot(x_runge, y_approx, 'b', 'linewidth', 2);
 hold on;
+
 plot(data_points,f_data_points,'k.','markersize',15);
 title('Runge Function Cubic Spline Interpolation','fontsize',11);
 legend('Runge Function', 'Cubic Spline', 'Data Points');
@@ -86,3 +81,18 @@ clf();
 plot(x_test, y_s - y_f);
 title('Error in Runge Cubic Spline Interpolation to |(f(x) - s(x))/f(x)|');
 print -dpng ErrorRungeCubicSpline;
+endfunction
+
+function s = calculateSpline(XL, XR, f, f_drv)
+  
+  delta_x = XR - XL;
+  y2 = (f(XR) - f(XL)) / delta_x;
+  
+  a = f(XL);
+  b = f_drv(XL); 
+  c = (y2 - f_drv(XL)) / delta_x;
+  d = (f_drv(XR) + f_drv(XL) - 2*y2) / (delta_x^2);
+  
+  s = @(x) a + b*(x - XL) + c*(x - XL)^2 + d*((x - XL)^2)*(x - XR);
+  
+endfunction
